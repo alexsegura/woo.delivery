@@ -7,8 +7,22 @@
  *
  * If you don't plan to dequeue the Storefront Core CSS you can remove the subsequent line and as well
  * as the sf_child_theme_dequeue_style() function declaration.
- */
+ * PHP version 5.6
+ * @category   CategoryName
+ * @package    PackageName
+ * @author     Original Author couleurmate
+ * @author     Another Author PasLoin, alexsegura
+ * @copyright  2019-2020
+ * @license    GNU General Public License v3.0
+ * @version    SVN: $Id$
+ * @link       
+ * @see        
+ * @since      File available since Release  
+ * @deprecated File deprecated in Release 
+  */
+
 //add_action( 'wp_enqueue_scripts', 'sf_child_theme_dequeue_style', 999 );
+
 /**
  * Dequeue the Storefront Parent theme core CSS
  */
@@ -16,45 +30,37 @@ function sf_child_theme_dequeue_style() {
     wp_dequeue_style( 'storefront-style' );
     wp_dequeue_style( 'storefront-woocommerce-style' );
 }
+
 /**
  * Note: DO NOT! alter or remove the code above this text and only add your custom PHP functions below this text.
  */
 
-//Text on cart button
-
- add_filter('woocommerce_product_add_to_cart_text', 'wh_archive_custom_cart_button_text'); // 2.1 +
-
- function wh_archive_custom_cart_button_text()
- {
- return __('Ajouter au panier', 'woocommerce');
+ function aurayonbio_add_woocommerce_support() {
+   add_theme_support('woocommerce');
  }
+ add_action('after_setup_theme', 'aurayonbio_add_woocommerce_support');
 
-//Attributes on products
-
-add_action('woocommerce_after_shop_loop_item_title', 'show_attr');
-
-function show_attr()
-{
-    global $product;
-	$product_attributes = $product->list_attributes();
-}
+ function aurayonbio_styles() {
+   wp_enqueue_style('google-fonts-lato-montserrat', 'https://fonts.googleapis.com/css?family=Lato:300,400,700|Montserrat:300,400,700');
+ }
+ add_action('wp_enqueue_scripts', 'aurayonbio_styles');
 
 //Remove catalog ordering field
 
-add_action('init','delay_remove');
-function delay_remove() {
-    remove_action( 'woocommerce_after_shop_loop', 'woocommerce_catalog_ordering', 10 );
-    remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 10 );
-}
+//add_action('init','delay_remove');
+//function delay_remove() {
+//    remove_action( 'woocommerce_after_shop_loop', 'woocommerce_catalog_ordering', 10 );
+//    remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 10 );
+//}
 
 // Remove-storefront-search-box-header.php
 
-function remove_sf_actions() {
+//function remove_sf_actions() {
 
-	remove_action( 'storefront_header', 'storefront_product_search', 40 );
+//	remove_action( 'storefront_header', 'storefront_product_search', 40 );
 
-}
-add_action( 'init', 'remove_sf_actions' );
+//}
+//add_action( 'init', 'remove_sf_actions' );
 
 // Change the placeholder image
 
@@ -69,10 +75,21 @@ function custom_woocommerce_placeholder_img_src( $src ) {
 	return $src;
 }
 
-// Go back button on product single page 
+// Hide SKU on product page
+add_filter( 'wc_product_sku_enabled', 'bbloomer_remove_product_page_sku' );
 
-add_action( 'woocommerce_after_add_to_cart_button', 'my_function_sample', 10 );
-function my_function_sample() {
-  global $product;
-  echo ' <button type="button" onclick="history.back();"> Retourner en arrière </button> ';
+function bbloomer_remove_product_page_sku( $enabled ) {
+    if ( !is_admin() && is_product() ) {
+        return false;
+    }
+
+    return $enabled;
+}
+
+// afficher la date de livraison dans le mail de confirmation
+ add_action( 'woocommerce_email_order_details', 'ts_email_order_details', 10, 4);
+
+ function ts_email_order_details( $order, $sent_to_admin, $plain_text, $email ) {
+   echo '<p><strong>Votre commande sera livrée le : </strong>'. get_post_meta( $order->get_id(), "shipping_date", true ) .'</p>';
+
 }
